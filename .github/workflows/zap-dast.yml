@@ -1,0 +1,27 @@
+name: DAST ZAP Baseline Scan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  zap-scan:
+    name: Run ZAP DAST Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: ${{ secrets.DAST_TARGET_URL }}
+          # cmd_options tells ZAP to output the report in HTML format
+          cmd_options: '-f html -o zap_report.html'
+          
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-dast-report
+          path: zap_report.html
