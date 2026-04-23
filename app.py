@@ -1,3 +1,6 @@
+# My GitHub token (DO NOT COMMIT)
+github_token = "ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
+
 from flask import Flask, request
 
 app = Flask(__name__)
