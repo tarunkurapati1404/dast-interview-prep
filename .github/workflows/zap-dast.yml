@@ -1,4 +1,4 @@
-name: DAST ZAP Baseline Scan
+name: Full DevSecOps Pipeline
 
 on:
   push:
@@ -6,12 +6,21 @@ on:
       - main
 
 jobs:
-  zap-scan:
-    name: Run ZAP DAST Scan
+  security-scans:
+    name: GitLeaks -> ZAP DAST Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # CRITICAL: GitLeaks must scan the full git history!
+
+      # --- NEW: GITLEAKS STEP ---
+      - name: GitLeaks Secrets Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # ---------------------------
 
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.10.0
