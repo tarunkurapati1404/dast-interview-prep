@@ -1,4 +1,4 @@
-name: Full DevSecOps Pipeline1
+name: Full DevSecOps Pipeline
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   security-scans:
-    name: GitLeaks -> Snyk -> ZAP
+    name: GitLeaks -> Snyk -> Trivy -> ZAP
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -20,14 +20,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # --- NEW: SNYK SCA STEP ---
-      - name: Run Snyk to check for vulnerabilities
+      - name: Run Snyk to check for dependencies
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
-      # ---------------------------
+
+      # --- NEW: BUILD DOCKER IMAGE ---
+      - name: Build the Docker Image
+        run: docker build -t my-flask-app:${{ github.sha }} .
+      # -------------------------------
+
+      # --- NEW: TRIVY CONTAINER SCAN ---
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'my-flask-app:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+      # ---------------------------------
 
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.10.0
