@@ -7,19 +7,26 @@ on:
 
 jobs:
   security-scans:
-    name: GitLeaks -> ZAP DAST Scan
+    name: GitLeaks -> Snyk -> ZAP
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # CRITICAL: GitLeaks must scan the full git history!
+          fetch-depth: 0 
 
-      # --- NEW: GITLEAKS STEP ---
       - name: GitLeaks Secrets Scan
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- NEW: SNYK SCA STEP ---
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
       # ---------------------------
 
       - name: ZAP Baseline Scan
